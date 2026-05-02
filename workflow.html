@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClipComp — 작동 워크플로우</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Design tokens (DESIGN.md) ── */
+    :root {
+      --primary:            #111111;
+      --primary-active:     #242424;
+      --ink:                #111111;
+      --body:               #374151;
+      --muted:              #6b7280;
+      --muted-soft:         #898989;
+      --hairline:           #e5e7eb;
+      --hairline-soft:      #f3f4f6;
+      --canvas:             #ffffff;
+      --surface-soft:       #f8f9fa;
+      --surface-card:       #f5f5f5;
+      --surface-dark:       #101010;
+      --surface-dark-el:    #1a1a1a;
+      --on-primary:         #ffffff;
+      --on-dark:            #ffffff;
+      --on-dark-soft:       #a1a1aa;
+      --badge-orange:       #fb923c;
+      --success:            #10b981;
+
+      --rounded-sm:  6px;
+      --rounded-md:  8px;
+      --rounded-lg:  12px;
+      --rounded-xl:  16px;
+      --rounded-pill:9999px;
+
+      --sp-xs:  8px;
+      --sp-sm:  12px;
+      --sp-md:  16px;
+      --sp-lg:  24px;
+      --sp-xl:  32px;
+      --sp-xxl: 48px;
+      --sp-sec: 96px;
+    }
+
+    body {
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Top Nav ── */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--canvas);
+      border-bottom: 1px solid var(--hairline-soft);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 var(--sp-xxl);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .nav-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--rounded-md);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .nav-icon img { width: 28px; height: 28px; display: block; object-fit: cover; }
+    .nav-wordmark {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .nav-badge {
+      margin-left: var(--sp-sm);
+      background: var(--surface-card);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 2px 10px;
+      border-radius: var(--rounded-pill);
+    }
+
+    /* ── Container ── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--sp-xxl);
+    }
+
+    /* ── Hero band ── */
+    .hero {
+      padding: var(--sp-sec) 0 72px;
+      text-align: center;
+      border-bottom: 1px solid var(--hairline-soft);
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface-card);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: var(--rounded-pill);
+      margin-bottom: var(--sp-lg);
+    }
+    .hero-eyebrow .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--badge-orange);
+    }
+    .hero-title {
+      font-size: 48px;
+      font-weight: 600;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: var(--sp-md);
+    }
+    .hero-title span { color: var(--badge-orange); }
+    .hero-desc {
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--body);
+      max-width: 520px;
+      margin: 0 auto var(--sp-xl);
+      line-height: 1.6;
+    }
+    .hero-stat-row {
+      display: flex;
+      justify-content: center;
+      gap: var(--sp-xl);
+      flex-wrap: wrap;
+    }
+    .hero-stat {
+      text-align: center;
+    }
+    .hero-stat-value {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .hero-stat-value span { color: var(--badge-orange); }
+    .hero-stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Section header ── */
+    .section {
+      padding: var(--sp-sec) 0;
+    }
+    .section-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--badge-orange);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: var(--sp-xs);
+    }
+    .section-title {
+      font-size: 36px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: var(--sp-sm);
+    }
+    .section-desc {
+      font-size: 16px;
+      color: var(--body);
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    /* ── Feature cards (3-up) ── */
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-lg);
+      margin-top: var(--sp-xxl);
+    }
+    .card-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sp-lg);
+      margin-top: var(--sp-lg);
+    }
+
+    .feature-card {
+      background: var(--surface-card);
+      border-radius: var(--rounded-lg);
+      padding: var(--sp-xl);
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.45s ease forwards;
+    }
+    .feature-card:nth-child(1) { animation-delay: 0.05s; }
+    .feature-card:nth-child(2) { animation-delay: 0.15s; }
+    .feature-card:nth-child(3) { animation-delay: 0.25s; }
+    .feature-card:nth-child(4) { animation-delay: 0.35s; }
+    .feature-card:nth-child(5) { animation-delay: 0.45s; }
+    .feature-card:nth-child(6) { animation-delay: 0.55s; }
+    .feature-card:nth-child(7) { animation-delay: 0.65s; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--canvas);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: var(--rounded-pill);
+      border: 1px solid var(--hairline);
+      margin-bottom: var(--sp-md);
+      letter-spacing: 0.04em;
+    }
+    .card-step.active {
+      background: var(--badge-orange);
+      color: #fff;
+      border-color: transparent;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: var(--sp-xs);
+      line-height: 1.4;
+    }
+    .card-desc {
+      font-size: 14px;
+      color: var(--body);
+      line-height: 1.6;
+      margin-bottom: var(--sp-md);
+    }
+    .card-code {
+      background: var(--primary);
+      color: #a5f3a5;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: var(--sp-md);
+      border-radius: var(--rounded-md);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .card-code .cm { color: #6b7280; }
+    .card-code .kw { color: #fb923c; }
+    .card-code .st { color: #86efac; }
+
+    /* 분기 카드 */
+    .branch-row { display: flex; gap: 8px; margin-top: var(--sp-md); }
+    .branch-item {
+      flex: 1;
+      border-radius: var(--rounded-md);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .branch-item.yes {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+    }
+    .branch-item.no {
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      color: var(--muted);
+    }
+    .branch-item .bl {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+    }
+    .branch-item.yes .bl { color: var(--badge-orange); }
+
+    /* 연결 화살표 */
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0;
+      margin-top: var(--sp-lg);
+    }
+    .flow-arrow svg { color: var(--hairline); }
+
+    /* ── 통계 섹션 ── */
+    .stats-section {
+      padding: var(--sp-sec) 0;
+      border-top: 1px solid var(--hairline-soft);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--sp-lg);
+      margin-top: var(--sp-xxl);
+    }
+    .stat-card {
+      background: var(--surface-card);
+      border-radius: var(--rounded-lg);
+      padding: var(--sp-xl);
+    }
+    .stat-value {
+      font-size: 36px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .stat-value em { color: var(--badge-orange); font-style: normal; }
+    .stat-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* 바 차트 */
+    .bar-section {
+      margin-top: var(--sp-xxl);
+    }
+    .bar-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: var(--sp-lg);
+    }
+    .bar-list { display: flex; flex-direction: column; gap: 16px; }
+    .bar-item {}
+    .bar-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .bar-name { font-size: 14px; font-weight: 500; color: var(--body); }
+    .bar-pct  { font-size: 14px; font-weight: 600; color: var(--badge-orange); }
+    .bar-track {
+      height: 6px;
+      background: var(--hairline);
+      border-radius: var(--rounded-pill);
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--badge-orange);
+      border-radius: var(--rounded-pill);
+      width: 0;
+      animation: grow 0.9s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    .bar-item:nth-child(1) .bar-fill { animation-delay: 0.3s; }
+    .bar-item:nth-child(2) .bar-fill { animation-delay: 0.45s; }
+    .bar-item:nth-child(3) .bar-fill { animation-delay: 0.6s; }
+    .bar-item:nth-child(4) .bar-fill { animation-delay: 0.75s; }
+    @keyframes grow { to { width: var(--w); } }
+
+    /* ── CTA band ── */
+    .cta-band {
+      background: var(--surface-card);
+      border-radius: var(--rounded-lg);
+      padding: var(--sp-xxl);
+      text-align: center;
+      margin: 0 0 var(--sp-sec);
+    }
+    .cta-band h2 {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: var(--ink);
+      margin-bottom: var(--sp-sm);
+    }
+    .cta-band p {
+      font-size: 16px;
+      color: var(--body);
+      margin-bottom: var(--sp-xl);
+    }
+    .btn-primary {
+      display: inline-block;
+      background: var(--primary);
+      color: var(--on-primary);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: var(--rounded-md);
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: var(--primary-active); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--surface-dark);
+      padding: 64px var(--sp-xxl);
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--sp-xl);
+    }
+    .footer-brand {}
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: var(--sp-sm);
+    }
+    .footer-logo .nav-icon { background: var(--surface-dark-el); }
+    .footer-wordmark { font-size: 15px; font-weight: 600; color: var(--on-dark); }
+    .footer-sub { font-size: 14px; color: var(--on-dark-soft); max-width: 280px; line-height: 1.6; }
+    .footer-links { display: flex; gap: var(--sp-xxl); }
+    .footer-col h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--on-dark);
+      margin-bottom: var(--sp-sm);
+    }
+    .footer-col a {
+      display: block;
+      font-size: 14px;
+      color: var(--on-dark-soft);
+      text-decoration: none;
+      margin-bottom: 8px;
+      transition: color 0.15s;
+    }
+    .footer-col a:hover { color: var(--on-dark); }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: var(--sp-xxl) auto 0;
+      padding-top: var(--sp-lg);
+      border-top: 1px solid #1f1f1f;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-copy { font-size: 13px; color: var(--on-dark-soft); }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .card-grid-3 { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid  { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .container { padding: 0 var(--sp-lg); }
+      .top-nav { padding: 0 var(--sp-lg); }
+      .hero { padding: 64px 0 48px; }
+      .hero-title { font-size: 32px; letter-spacing: -0.5px; }
+      .hero-desc { font-size: 16px; }
+      .card-grid-3, .card-grid-2 { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .section-title { font-size: 28px; }
+      .footer-inner { flex-direction: column; }
+      .footer-links { flex-wrap: wrap; gap: var(--sp-xl); }
+      .footer-bottom { flex-direction: column; gap: var(--sp-sm); text-align: center; }
+      .hero-stat-row { gap: var(--sp-lg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Top Nav ── -->
+  <nav class="top-nav">
+    <a class="nav-logo" href="#">
+      <div class="nav-icon">
+        <img src="icon_clipcomp.png" alt="ClipComp" />
+      </div>
+      <span class="nav-wordmark">ClipComp</span>
+    </a>
+    <span class="nav-badge">워크플로우 문서</span>
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-eyebrow"><span class="dot"></span>자동 압축 도구</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;color:#166534;font-size:12px;font-weight:600;padding:4px 12px;border-radius:9999px;border:1px solid #bbf7d0;margin-bottom:16px;">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8S4.41 14.5 8 14.5 14.5 11.59 14.5 8 11.59 1.5 8 1.5zm0 2.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm0 7.75c-1.87 0-3.53-.95-4.5-2.38C3.52 7.87 6.27 7 8 7s4.48.87 4.5 2.37c-.97 1.43-2.63 2.38-4.5 2.38z" fill="#16a34a"/></svg>
+        macOS Mojave(10.14) 이상 전용
+      </div>
+      <h1 class="hero-title">복사하는 순간,<br><span>이미지가 작아집니다</span></h1>
+      <p class="hero-desc">ClipComp는 PNG 이미지를 클립보드에 복사하는 즉시 자동으로 압축합니다. 별도 앱 없이, 백그라운드에서 조용히.</p>
+      <div class="hero-stat-row">
+        <div class="hero-stat">
+          <div class="hero-stat-value"><span>65–75</span>%</div>
+          <div class="hero-stat-label">평균 용량 감소</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">~<span>1</span>초</div>
+          <div class="hero-stat-label">압축 소요 시간</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">80–<span>95</span></div>
+          <div class="hero-stat-label">유지 화질 점수</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 워크플로우 섹션 ── -->
+  <section class="section">
+    <div class="container">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">6단계로 완성되는<br>자동 압축 파이프라인</h2>
+      <p class="section-desc">클립보드 변화 감지부터 알림까지, ClipComp는 사용자 개입 없이 모든 과정을 처리합니다.</p>
+
+      <!-- Row 1 -->
+      <div class="card-grid-3">
+        <div class="feature-card">
+          <div class="card-step active">STEP 01</div>
+          <h3 class="card-title">클립보드 변화 감지</h3>
+          <p class="card-desc">1초마다 클립보드 상태를 폴링합니다. clipboard info의 MD5 해시를 이전 값과 비교해 변경 여부를 판단합니다.</p>
+          <div class="card-code"><span class="cm"># 클립보드 타입 목록 해시</span>
+CLIP_INFO=$(osascript \
+  -e <span class="st">'clipboard info'</span>)
+CURRENT=$(echo "$CLIP_INFO" | md5)</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="card-step">STEP 02</div>
+          <h3 class="card-title">PNG 타입 확인</h3>
+          <p class="card-desc">clipboard info 결과에서 PNGf 타입 존재 여부를 먼저 확인합니다. 텍스트·JPEG 복사는 이 단계에서 완전히 무시됩니다.</p>
+          <div class="branch-row">
+            <div class="branch-item yes">
+              <div class="bl">PNGf ✓</div>
+              다음 단계 진행
+            </div>
+            <div class="branch-item no">
+              <div class="bl">그 외</div>
+              무시, 대기 복귀
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="card-step">STEP 03</div>
+          <h3 class="card-title">이미지 추출</h3>
+          <p class="card-desc">AppleScript로 클립보드의 PNG 데이터를 임시 파일에 저장합니다. pbpaste는 텍스트 전용이므로 osascript를 직접 사용합니다.</p>
+          <div class="card-code"><span class="kw">set</span> data <span class="kw">to</span> clipboard <span class="kw">as</span>
+     «class PNGf»
+<span class="kw">write</span> data <span class="kw">to</span>
+     /tmp/clip_in.png</div>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="card-grid-3" style="margin-top: var(--sp-lg);">
+        <div class="feature-card">
+          <div class="card-step">STEP 04</div>
+          <h3 class="card-title">pngquant 압축</h3>
+          <p class="card-desc">256색 팔레트로 변환하며 품질 80–95를 유지합니다. speed 1 설정으로 최대 압축률을 적용합니다.</p>
+          <div class="card-code">pngquant 256 \
+  --quality=<span class="kw">80-95</span> \
+  --speed <span class="kw">1</span> \
+  clip_in.png \
+  -o clip_out.png</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="card-step">STEP 05</div>
+          <h3 class="card-title">클립보드 교체</h3>
+          <p class="card-desc">압축된 이미지를 클립보드에 덮어씁니다. 이후 PREV_COUNT를 즉시 갱신하여 자기 자신을 재감지하는 루프를 방지합니다.</p>
+          <div class="card-code"><span class="cm"># 교체 후 루프 방지</span>
+<span class="kw">set</span> clipboard <span class="kw">to</span>
+  (read clip_out.png
+   as «class PNGf»)
+PREV=$(clipboard info | md5)</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="card-step active">STEP 06</div>
+          <h3 class="card-title">알림 표시</h3>
+          <p class="card-desc">압축률과 전후 용량을 macOS 알림으로 표시합니다. 썸네일로 압축된 이미지를 미리 확인할 수 있습니다.</p>
+          <div class="card-code">terminal-notifier \
+  -title <span class="st">"ClipComp"</span> \
+  -message <span class="st">"84% 완료"</span> \
+  -contentImage \
+    clip_out.png</div>
+        </div>
+      </div>
+
+      <!-- 루프 설명 -->
+      <div style="margin-top: var(--sp-lg); background: var(--surface-soft); border-radius: var(--rounded-lg); padding: var(--sp-xl); display: flex; align-items: center; gap: var(--sp-lg); border: 1px solid var(--hairline-soft);">
+        <div style="flex-shrink:0; width:40px; height:40px; background:var(--canvas); border:1px solid var(--hairline); border-radius: var(--rounded-pill); display:flex; align-items:center; justify-content:center;">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M15 9A6 6 0 1 1 9 3" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M9 1l3 2-3 2" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:14px; font-weight:600; color:var(--ink); margin-bottom:4px;">1초 후 STEP 01로 반복</div>
+          <div style="font-size:13px; color:var(--muted); line-height:1.5;">임시 파일은 매 루프마다 삭제됩니다. 스크립트 종료 시 <code style="font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--canvas); padding:1px 6px; border-radius:4px; border:1px solid var(--hairline);">trap EXIT</code>으로 최종 정리됩니다.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── 효과 섹션 ── -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="section-label">Results</div>
+      <h2 class="section-title">실제 압축 효과</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">65–<em>75</em>%</div>
+          <div class="stat-label">평균 용량 감소율<br>스크린샷 기준</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">~<em>1</em>초</div>
+          <div class="stat-label">압축 소요 시간<br>체감 딜레이 없음</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">80–<em>95</em></div>
+          <div class="stat-label">유지 화질 점수<br>시각적 열화 거의 없음</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value"><em>256</em></div>
+          <div class="stat-label">팔레트 컬러 수<br>PNG-8 최적화</div>
+        </div>
+      </div>
+
+      <div class="bar-section">
+        <div class="bar-title">파일 유형별 압축률</div>
+        <div class="bar-list">
+          <div class="bar-item">
+            <div class="bar-meta">
+              <span class="bar-name">부분 캡처 스크린샷</span>
+              <span class="bar-pct">84% 감소</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="--w:84%"></div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-meta">
+              <span class="bar-name">전체화면 스크린샷</span>
+              <span class="bar-pct">74% 감소</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="--w:74%"></div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-meta">
+              <span class="bar-name">UI 이미지</span>
+              <span class="bar-pct">68% 감소</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="--w:68%"></div></div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-meta">
+              <span class="bar-name">사진 PNG</span>
+              <span class="bar-pct">58% 감소</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="--w:58%"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── CTA band ── -->
+  <div class="container">
+    <div class="cta-band">
+      <h2>지금 바로 설치하세요</h2>
+      <p>install.command 파일 하나로, Intel·Apple Silicon 모두 자동 설치됩니다.</p>
+      <a class="btn-primary" href="https://github.com/duneshique/clipcomp">GitHub에서 다운로드 →</a>
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="nav-icon">
+            <img src="icon_clipcomp.png" alt="ClipComp" />
+          </div>
+          <span class="footer-wordmark">ClipComp</span>
+        </div>
+        <p class="footer-sub">macOS 클립보드 PNG 자동 압축 도구. 복사하는 순간 용량이 줄어듭니다.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>프로젝트</h4>
+          <a href="https://github.com/duneshique/clipcomp">GitHub</a>
+          <a href="https://github.com/duneshique/clipcomp/releases">릴리즈</a>
+          <a href="https://github.com/duneshique/clipcomp/issues">이슈</a>
+        </div>
+        <div class="footer-col">
+          <h4>문서</h4>
+          <a href="#">README</a>
+          <a href="#">워크플로우</a>
+          <a href="#">설치 가이드</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2025 ClipComp · MIT License</span>
+      <span class="footer-copy">Made by <a href="mailto:aibaiwork@gmail.com" style="color:var(--on-dark-soft);text-decoration:none;border-bottom:1px solid #333;">aibaiwork</a> · <a href="mailto:aibaiwork@gmail.com" style="color:var(--on-dark-soft);text-decoration:none;border-bottom:1px solid #333;">aibaiwork@gmail.com</a></span>
+    </div>
+  </footer>
+
+</body>
+</html>
